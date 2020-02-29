@@ -6,12 +6,14 @@
     The solution contains the same number of lines (plus imports)
 """
 
+from random import random
+import hashlib
 user = input("Enter a username: ")
 password = input("Enter a password: ")
 
 # TODO: Create a salt and hash the password
-# salt = ???
-# hashed_password = ???
+salt = int(random() * 100)
+hashed_password = (hashlib.sha256(password.encode())).hexdigest()
 
 try:
     reading = open("passfile.txt", 'r')
