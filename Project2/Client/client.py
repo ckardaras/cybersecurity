@@ -12,6 +12,7 @@
 
 
 """
+import Crypto
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
@@ -34,18 +35,26 @@ def pad_message(message):
 # make session key
 def generate_key():
     aes_session_key = get_random_bytes(16)  # make aes session key
-
+    return aes_session_key
 
 # Takes an AES session key and encrypts it using the appropriate
 # key and return the value
 def encrypt_handshake(session_key):
     # TODO: Implement this function
-
-    Pub_key = RSA.import_key(open("public.pem").read())
-    
     # Encrypt the session key with the public RSA key
-    cipher_rsa = PKCS1_OAEP.new(Pub_key)
-    return cipher_rsa.encrypt(session_key)
+
+    public_key = RSA.import_key(open("../public.pem").read())
+
+    cipher_rsa = PKCS1_OAEP.new(public_key)
+    enc_session_key = cipher_rsa.encrypt(session_key)
+
+    return enc_session_key
+
+
+    
+    
+    
+   
 
 
 
@@ -53,18 +62,25 @@ def encrypt_handshake(session_key):
 def encrypt_message(message, session_key):
     # TODO: Implement this function
 
-    # Encrypt the data with the AES session key
-    cipher_aes = AES.new(session_key, AES.MODE_EAX)
-    ciphertext, tag = cipher_aes.encrypt_and_digest(message)
-    [ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
+    aes_cipher = AES.new(session_key, AES.MODE_CBC)
+    ct_bytes = aes_cipher.encrypt(pad(message, AES.block_size))
+    iv = b64encode(aes_cipher.iv).decode('utf-8')
+    ciphertext = b64encode(ct_bytes).decode('utf-8')
+    result = json.dumps({'iv': iv, 'ciphertext': ciphertext})
 
-    pass
+    return result
 
 
 # Decrypts the message using AES. Same as server function
 def decrypt_message(message, session_key):
     # TODO: Implement this function
-    pass
+    b64 = json.loads(message)
+    iv = b64decode(b64['iv'])
+    ciphertext=b64decode(b64['ciphertext'])
+    cipher=AES.new(session_key,AES.MODE_CBC,iv)
+    plaintext=unpad(cipher.decrypt(ciphertext),16)
+    
+    return plaintext
 
 
 # Sends a message over TCP
@@ -109,8 +125,18 @@ def main():
             exit(0)
 
         # TODO: Encrypt message and send to server
+        cipher = encrypt_message(message,key)
+        send_message(sock,cipher)
+
+        
+
 
         # TODO: Receive and decrypt response from server
+
+        response = receive_message(sock)
+
+        print(decrypt_message(response,key))
+
     finally:
         print('closing socket')
         sock.close()

@@ -8,6 +8,7 @@
 
 from random import random
 import hashlib
+
 user = input("Enter a username: ")
 password = input("Enter a password: ")
 

@@ -27,19 +27,33 @@ def pad_message(message):
 # Write a function that decrypts a message using the server's private key
 def decrypt_key(session_key):
     # TODO: Implement this function
-    pass
+    private_key = RSA.import_key(open("../private.pem").read())
+    cipher_rsa = PKCS1_OAEP.new(private_key)
+    session_key = cipher_rsa.decrypt(session_key)
+    return session_key
+    
 
 
 # Write a function that decrypts a message using the session key
 def decrypt_message(client_message, session_key):
     # TODO: Implement this function
-    pass
+    b64 = json.loads(client_message)
+    iv = b64decode(b64['iv'])
+    ciphertext=b64decode(b64['ciphertext'])
+    cipher=AES.new(session_key,AES.MODE_CBC,iv)
+    plaintext=unpad(cipher.decrypt(ciphertext),16)
+    return plaintext
 
 
 # Encrypt a message using the session key
 def encrypt_message(message, session_key):
     # TODO: Implement this function
-    pass
+    aes_cipher = AES.new(session_key, AES.MODE_CBC)
+    ct_bytes = aes_cipher.encrypt(pad(message, AES.block_size))
+    iv = b64encode(aes_cipher.iv).decode('utf-8')
+    ciphertext = b64encode(ct_bytes).decode('utf-8')
+    result = json.dumps({'iv': iv, 'ciphertext': ciphertext}) 
+    return result
 
 
 # Receive 1024 bytes from the client
@@ -105,9 +119,10 @@ def main():
                 ciphertext_message = receive_message(connection)
 
                 # TODO: Decrypt message from client
+                plaintext = decrypt_message(ciphertext_message,plaintext_key)
 
                 # TODO: Split response from user into the username and password
-
+                
                 # TODO: Encrypt response to client
 
                 # Send encrypted response
