@@ -16,14 +16,13 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES, PKCS1_OAEP
 
+
 import socket
 import os
 
 
 host = "localhost"
 port = 10001
-Server_Pub = 'AAAAB3NzaC1yc2EAAAADAQABAAABgQDVhkkpCrt+EjveHi8kQQThYJ4PpR7lXAQ68pFdN4PaBVoqUdcTxrmXDYbEHXCGiksveuHoNW8fpmw6qKggZ/SmlD6jGCVLW1TgKjn390IVENKz0PFJ3Wpr2q90y2MK6GqahduW3GBjFCz7yDXF+qCr4FRwrwYlIWkNNYqdDsdb1t4eJ08LuOtfkt7LIh45USgKsaE0a+ewNpQp9MBNx4keGcZSk1xMwSQnajqwBiFEw7SwoxPMza0FevNE3frC7eUCcYWhpFkAfsoBbu1JEiYtr/yQ/mpMLhkMeJNlEtz5NohEC8wpFgq8DBk0rVKrKBbaQZERXJxTQ62+POZtp8qaMxqCB38ka6WaGHFu+FnqDY/2Tid3LMdh6OXMIJReTfX8i7OghyREzb9yu2iBPrb+u+Q4odBW/Tj3zq2i0DCJEf9p+Mj19YKjLXIFr8w78xpJJmYnqDeUf0TA2a7zj25/CrDwXGDnUiSzbfvaR3ElSHIa/SVeG7VwrYHc57jACUE='
-
 
 # A helper function that you may find useful for AES encryption
 # Is this the best way to pad a message?!?!
@@ -32,9 +31,9 @@ def pad_message(message):
 
 
 # TODO: Generate a cryptographically random AES key
+# make session key
 def generate_key():
-    # TODO: Implement this function
-    return os.urandom(16)
+    aes_session_key = get_random_bytes(16)  # make aes session key
 
 
 # Takes an AES session key and encrypts it using the appropriate
