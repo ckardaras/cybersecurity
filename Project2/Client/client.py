@@ -85,10 +85,13 @@ def encrypt_message(thing_to_encrypt, aes_key):
 # Decrypts the message using AES. Same as server function
 def decrypt_message(message, key, iv):
     # TODO: Implement this function
-    print(message)
-    aes = AES.new(key, AES.MODE_CBC, iv)
-    decd = aes.decrypt(message)
-    return decd
+    my_message=pickle.loads(message)
+    b64 = json.loads(my_message)
+    iv = b64decode(b64['iv'])
+    ciphertext = b64decode(b64['ciphertext'])
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plaintext = unpad(cipher.decrypt(ciphertext), 16)
+    return(plaintext)
 
 
 # Sends a message over TCP
