@@ -92,8 +92,9 @@ def verify_hash(user, password):
         for line in reader.read().split('\n'):
             line = line.split("\t")
             if line[0] == user:
+                password=password+line[1]
                 # TODO: Generate the hashed password
-                # hashed_password =
+                hashed_password = (hashlib.sha256(password.encode('utf-8'))).hexdigest()
                 return hashed_password == line[2]
         reader.close()
     except FileNotFoundError:
