@@ -6,6 +6,9 @@ from Crypto.Random import get_random_bytes
 from base64 import b64decode
 from Crypto.Util.Padding import unpad
 from Crypto.PublicKey import RSA
+from random import random
+import pickle
+
 
 def grab_rsa_key():
     rsa_key_file = open('project2/public.pem', 'r')
@@ -27,6 +30,7 @@ def make_session_key():
     return session_key
 
 def encrypt_with_aes(aes_key,thing_to_encrypt):
+    print(thing_to_encrypt)
     aes_cipher = AES.new(aes_key, AES.MODE_CBC)
     ct_bytes = aes_cipher.encrypt(pad(thing_to_encrypt, AES.block_size))
     iv = b64encode(aes_cipher.iv).decode('utf-8')
@@ -71,13 +75,26 @@ def decrypt_with_rsa(enc_session_key):
     session_key = cipher_rsa.decrypt(enc_session_key)
     print(session_key)
 
+
+def parse_json_iv(AES_key,encrypted_message):
+    b64 = json.loads(encrypted_message)
+    iv = b64decode(b64['iv'])
+    return iv
+
+def parse_json_ct(AES_key, encrypted_message):
+    b64 = json.loads(encrypted_message)
+    ciphertext=b64decode(b64['ciphertext'])
+    return ciphertext
+
+
 if __name__ == '__main__':
 
-    #session_key=make_session_key()
-    #aes_key=make_aes_key()
-    #encrypted_message=encrypt_with_aes(aes_key,session_key)
-    #print(encrypted_message)
-    #decrypt_with_aes(aes_key,encrypted_message)
+    session_key=make_session_key()
+    aes_key=make_aes_key()
+    encrypted_message=encrypt_with_aes(aes_key,session_key)
+    print(encrypted_message)
+    decrypt_with_aes(aes_key,encrypted_message)
     #make_rsa_files()
     encrypted_session_key=encrypt_with_rsa()
     decrypt_with_rsa(encrypted_session_key)
+    print(int(random() * 100))

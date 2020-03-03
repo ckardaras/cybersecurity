@@ -7,13 +7,23 @@
         (Feel free to use more or less, this
         is provided as a sanity check)
 
-    Put your team members' names:
+    Put your team members' names: Chris Kardaras, Charlie Bourland, Sam Brin
 
 
 
 """
 
 import socket
+import json
+from base64 import b64encode
+from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+from base64 import b64decode
+from Crypto.Util.Padding import unpad
+from Crypto.PublicKey import RSA
+from random import random
+import pickle
 
 host = "localhost"
 port = 10001
@@ -37,7 +47,8 @@ def decrypt_key(session_key):
 # Write a function that decrypts a message using the session key
 def decrypt_message(client_message, session_key):
     # TODO: Implement this function
-    b64 = json.loads(client_message)
+    message=pickle.loads(client_message)
+    b64 = json.loads(message)
     iv = b64decode(b64['iv'])
     ciphertext=b64decode(b64['ciphertext'])
     cipher=AES.new(session_key,AES.MODE_CBC,iv)
@@ -52,8 +63,9 @@ def encrypt_message(message, session_key):
     ct_bytes = aes_cipher.encrypt(pad(message, AES.block_size))
     iv = b64encode(aes_cipher.iv).decode('utf-8')
     ciphertext = b64encode(ct_bytes).decode('utf-8')
-    result = json.dumps({'iv': iv, 'ciphertext': ciphertext}) 
-    return result
+    result = json.dumps({'iv': iv, 'ciphertext': ciphertext})
+    pickled = pickle.dumps(result)
+    return pickled
 
 
 # Receive 1024 bytes from the client
@@ -124,6 +136,9 @@ def main():
                 # TODO: Split response from user into the username and password
                 
                 # TODO: Encrypt response to client
+                mymessage = b"Looks Good"
+                ciphertext_response=encrypt_message(mymessage,plaintext_key)
+
 
                 # Send encrypted response
                 send_message(connection, ciphertext_response)

@@ -7,15 +7,20 @@
         (Feel free to use more or less, this
         is provided as a sanity check)
 
-    Put your team members' names:
+    Put your team members' names: Chris Kardaras, Charlie Bourland, Sam Brin
 
 
 
 """
-import Crypto
-from Crypto.PublicKey import RSA
-from Crypto.Random import get_random_bytes
+import json
+from base64 import b64encode
 from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Util.Padding import pad
+from Crypto.Random import get_random_bytes
+from base64 import b64decode
+from Crypto.Util.Padding import unpad
+from Crypto.PublicKey import RSA
+import pickle
 
 
 import socket
@@ -44,43 +49,46 @@ def encrypt_handshake(session_key):
     # Encrypt the session key with the public RSA key
 
     public_key = RSA.import_key(open("../public.pem").read())
-
+    # Encrypt the session key with the public RSA key
     cipher_rsa = PKCS1_OAEP.new(public_key)
     enc_session_key = cipher_rsa.encrypt(session_key)
-
-    return enc_session_key
+    return(enc_session_key)
 
 
     
     
-    
+def parse_json_iv(encrypted_message):
+    b64 = json.loads(encrypted_message)
+    iv = b64decode(b64['iv'])
+    return iv
+
+def parse_json_ct(encrypted_message):
+    b64 = json.loads(encrypted_message)
+    ciphertext=b64decode(b64['ciphertext'])
+    return ciphertext
    
 
 
 
 # Encrypts the message using AES. Same as server function
-def encrypt_message(message, session_key):
+def encrypt_message(thing_to_encrypt, aes_key):
     # TODO: Implement this function
-
-    aes_cipher = AES.new(session_key, AES.MODE_CBC)
-    ct_bytes = aes_cipher.encrypt(pad(message, AES.block_size))
+    aes_cipher = AES.new(aes_key, AES.MODE_CBC)
+    ct_bytes = aes_cipher.encrypt(pad(thing_to_encrypt, AES.block_size))
     iv = b64encode(aes_cipher.iv).decode('utf-8')
     ciphertext = b64encode(ct_bytes).decode('utf-8')
     result = json.dumps({'iv': iv, 'ciphertext': ciphertext})
-
+    #pickled = pickle.dumps(result)
     return result
 
 
 # Decrypts the message using AES. Same as server function
-def decrypt_message(message, session_key):
+def decrypt_message(message, key, iv):
     # TODO: Implement this function
-    b64 = json.loads(message)
-    iv = b64decode(b64['iv'])
-    ciphertext=b64decode(b64['ciphertext'])
-    cipher=AES.new(session_key,AES.MODE_CBC,iv)
-    plaintext=unpad(cipher.decrypt(ciphertext),16)
-    
-    return plaintext
+    print(message)
+    aes = AES.new(key, AES.MODE_CBC, iv)
+    decd = aes.decrypt(message)
+    return decd
 
 
 # Sends a message over TCP
@@ -108,7 +116,8 @@ def main():
 
     try:
         # Message that we need to send
-        message = user + ' ' + password
+        message_complete = user + ' ' + password
+        message=bytes(message_complete,'utf-8')
 
         # Generate random AES key
         key = generate_key()
@@ -125,7 +134,13 @@ def main():
             exit(0)
 
         # TODO: Encrypt message and send to server
-        cipher = encrypt_message(message,key)
+        unpickled_cipher = encrypt_message(message,key)
+
+        iv=parse_json_iv(unpickled_cipher)
+
+        cipher=pickle.dumps(unpickled_cipher)
+
+
         send_message(sock,cipher)
 
         
@@ -135,7 +150,7 @@ def main():
 
         response = receive_message(sock)
 
-        print(decrypt_message(response,key))
+        print(decrypt_message(response,key,iv))
 
     finally:
         print('closing socket')
