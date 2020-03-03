@@ -132,11 +132,19 @@ def main():
 
                 # TODO: Decrypt message from client
                 plaintext = decrypt_message(ciphertext_message,plaintext_key)
+                login=plaintext.split()
+                user=login[0]
+                password=login[1]
+                if(verify_hash(user,password)==False):
+                    mymessage = b"This is not a valid login"
+                else:
+                    mymessage=b"This is a valid login"
+
 
                 # TODO: Split response from user into the username and password
                 
                 # TODO: Encrypt response to client
-                mymessage = b"Looks Good"
+
                 ciphertext_response=encrypt_message(mymessage,plaintext_key)
 
 
