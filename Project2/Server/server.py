@@ -24,6 +24,7 @@ from Crypto.Util.Padding import unpad
 from Crypto.PublicKey import RSA
 from random import random
 import pickle
+import hashlib
 
 host = "localhost"
 port = 10001
@@ -91,11 +92,11 @@ def verify_hash(user, password):
         reader = open("passfile.txt", 'r')
         for line in reader.read().split('\n'):
             line = line.split("\t")
-            if line[0] == user:
-                password=password+line[1]
+            if bytes(line[0],'utf-8') == user:
+                full_pass=password.decode('utf-8')+line[1]
                 # TODO: Generate the hashed password
-                hashed_password = (hashlib.sha256(password.encode('utf-8'))).hexdigest()
-                return hashed_password == line[2]
+                hashed_password = (hashlib.sha256(full_pass.encode('utf-8'))).hexdigest()
+                return (hashed_password == line[2])
         reader.close()
     except FileNotFoundError:
         return False
